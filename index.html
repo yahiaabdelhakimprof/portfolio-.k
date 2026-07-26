@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yahia Abdel Hakim — Junior Odoo ERP Implementation Consultant | Business Analyst</title>
+<style>
+  :root{
+    --ink-950:#0b0e14;
+    --ink-900:#12161f;
+    --ink-850:#161b26;
+    --ink-800:#1b212e;
+    --ink-700:#242b3a;
+    --line:#2a3040;
+    --paper:#e8e6df;
+    --paper-dim:#9aa0ad;
+    --paper-faint:#6b7280;
+    --brass:#c9a35a;
+    --brass-bright:#e9c274;
+    --violet:#8b6df0;
+    --violet-bright:#a68bff;
+    --ok:#7fbf8f;
+    --radius:14px;
+    --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink-950);
+    color:var(--paper);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(201,163,90,0.035) 1px, transparent 1px);
+    background-size: 100% 42px;
+    pointer-events:none;
+    z-index:0;
+  }
+  /* ---------- Ambient animated background ---------- */
+  .ambient-bg{
+    position:fixed; inset:0; overflow:hidden; z-index:0; pointer-events:none;
+  }
+  .blob{
+    position:absolute; border-radius:50%; filter:blur(80px); opacity:0.32;
+    mix-blend-mode:screen; will-change:transform;
+  }
+  .blob-1{
+    width:520px; height:520px; top:-10%; left:-8%;
+    background:radial-gradient(circle, var(--brass) 0%, transparent 70%);
+  }
+  .blob-2{
+    width:460px; height:460px; top:30%; right:-10%;
+    background:radial-gradient(circle, var(--violet) 0%, transparent 70%);
+  }
+  .blob-3{
+    width:400px; height:400px; bottom:-12%; left:30%;
+    background:radial-gradient(circle, var(--ok) 0%, transparent 72%);
+    opacity:0.18;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .blob{will-change:auto;}
+  }
+  a{color:inherit; text-decoration:none;}
+  ul{list-style:none;}
+  img{max-width:100%; display:block;}
+  section{position:relative; z-index:1;}
+
+  /* ---------- Layout helpers ---------- */
+  .wrap{max-width:1120px; margin:0 auto; padding:0 28px;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--brass-bright);
+    border:1px solid rgba(201,163,90,0.35);
+    background:rgba(201,163,90,0.08);
+    padding:6px 14px; border-radius:999px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{content:"§"; opacity:0.8;}
+  h1,h2,h3{font-family:var(--serif); font-weight:600; letter-spacing:-0.01em;}
+  .section-title{
+    font-size:clamp(2.2rem, 4.2vw, 3.4rem);
+    color:#f4f2ec;
+    margin-bottom:14px;
+  }
+  .section-sub{color:var(--paper-dim); font-size:1.05rem; max-width:560px;}
+  .rule{
+    width:56px; height:2px; background:linear-gradient(90deg,var(--brass),transparent);
+    margin-top:26px;
+  }
+  .section-head{text-align:center; padding:100px 0 60px;}
+  .section-head .rule{margin-left:auto; margin-right:auto;}
+
+  /* ---------- Nav ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(11,14,20,0.82);
+    backdrop-filter: blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    height:74px;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{
+    width:38px; height:38px; border-radius:10px;
+    background:linear-gradient(135deg, var(--brass) 0%, var(--violet) 130%);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-weight:700; color:#0b0e14; font-size:17px;
+  }
+  .brand-name{font-family:var(--mono); font-size:15px; letter-spacing:0.12em; color:#f4f2ec;}
+  .nav-links{display:flex; align-items:center; gap:32px;}
+  .nav-links a{
+    font-size:14px; color:var(--paper-dim); position:relative; padding:6px 0;
+    transition:color .2s ease;
+  }
+  .nav-links a:hover{color:#f4f2ec;}
+  .nav-links a::after{
+    content:""; position:absolute; left:0; bottom:0; width:0; height:1px;
+    background:var(--brass-bright); transition:width .25s ease;
+  }
+  .nav-links a:hover::after{width:100%;}
+  .nav-toggle{
+    display:none; width:38px; height:38px; border-radius:8px; border:1px solid var(--line);
+    background:var(--ink-850); align-items:center; justify-content:center; cursor:pointer;
+  }
+  .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after{
+    content:""; display:block; width:16px; height:1.5px; background:var(--paper); position:relative;
+    transition:.2s;
+  }
+  .nav-toggle span::before{position:absolute; top:-5px;}
+  .nav-toggle span::after{position:absolute; top:5px;}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:88px 0 110px; position:relative;}
+  .hero-grid{
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:64px; align-items:center;
+  }
+  .status-pill{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--ok);
+    border:1px solid rgba(127,191,143,0.35); background:rgba(127,191,143,0.08);
+    padding:6px 14px; border-radius:999px; margin-bottom:28px;
+  }
+  .status-pill .dot{width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 4px rgba(127,191,143,0.15);}
+  .hero-hi{font-family:var(--mono); font-size:15px; color:var(--paper-dim); letter-spacing:0.08em; margin-bottom:6px;}
+  .hero h1{
+    font-size:clamp(2.6rem, 5.4vw, 4.4rem);
+    line-height:1.04;
+    color:#f6f4ee;
+    margin-bottom:14px;
+  }
+  .hero h1 .accent{
+    display:block;
+    background:linear-gradient(100deg, var(--brass-bright), var(--violet-bright));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero-role{
+    font-family:var(--serif); font-style:italic; font-size:clamp(1.15rem,2.2vw,1.5rem);
+    color:var(--paper-dim); margin-bottom:26px; max-width:520px;
+  }
+  .hero-bio{color:var(--paper-dim); max-width:520px; margin-bottom:36px; font-size:1rem;}
+  .hero-cta{display:flex; align-items:center; gap:22px; flex-wrap:wrap;}
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:var(--sans); font-weight:600; font-size:14.5px;
+    padding:14px 26px; border-radius:10px; cursor:pointer; border:none;
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(120deg, var(--brass) 0%, var(--violet) 140%);
+    color:#0b0e14;
+  }
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 12px 28px -8px rgba(139,109,240,0.55);}
+  .btn-ghost{
+    background:transparent; color:var(--paper); border:1px solid var(--line);
+  }
+  .btn-ghost:hover{border-color:var(--brass-bright); color:var(--brass-bright);}
+  .social-row{display:flex; gap:12px;}
+  .social-btn{
+    width:40px; height:40px; border-radius:10px; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; color:var(--paper-dim);
+    transition:.2s;
+  }
+  .social-btn:hover{border-color:var(--brass-bright); color:var(--brass-bright); transform:translateY(-2px);}
+
+  .portrait-wrap{position:relative; display:flex; justify-content:center;}
+  .ledger-ring{
+    position:relative; width:320px; height:320px; border-radius:50%;
+    background:conic-gradient(from 200deg, var(--brass) 0deg, var(--violet) 160deg, var(--brass) 360deg);
+    padding:5px;
+  }
+  .ledger-ring::after{
+    content:""; position:absolute; inset:-18px; border-radius:50%;
+    border:1px dashed rgba(201,163,90,0.25);
+  }
+  .portrait{
+    width:100%; height:100%; border-radius:50%; overflow:hidden;
+    background:var(--ink-800);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-size:5.5rem; color:var(--brass-bright);
+  }
+  .ledger-tag{
+    position:absolute; bottom:6px; right:6px;
+    background:var(--ink-900); border:1px solid var(--line);
+    padding:9px 14px; border-radius:10px; font-family:var(--mono); font-size:11.5px;
+    color:var(--paper-dim); letter-spacing:0.05em;
+  }
+
+  /* ---------- About ---------- */
+  .about-body{
+    max-width:760px; margin:0 auto; text-align:center; color:var(--paper-dim);
+    font-size:1.08rem; line-height:1.85;
+  }
+  .about-tags{
+    display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:38px;
+  }
+  .tag-pill{
+    display:flex; align-items:center; gap:9px;
+    border:1px solid var(--line); background:var(--ink-850);
+    padding:11px 18px; border-radius:999px; font-size:13.5px; color:var(--paper-dim);
+  }
+  .tag-pill svg{width:15px; height:15px; stroke:var(--brass-bright); flex-shrink:0;}
+  .about-actions{display:flex; justify-content:center; margin-top:38px;}
+
+  /* ---------- Qualification ---------- */
+  .qual-grid{display:grid; grid-template-columns:1fr 1fr; gap:64px; padding-bottom:110px;}
+  .qual-col-head{
+    display:flex; align-items:center; gap:12px; margin-bottom:36px;
+  }
+  .qual-icon{
+    width:42px; height:42px; border-radius:11px; background:var(--ink-850); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .qual-icon svg{width:19px; height:19px; stroke:var(--brass-bright);}
+  .qual-col-head h3{font-size:1.4rem; color:#f4f2ec;}
+
+  .timeline{position:relative; padding-left:34px;}
+  .timeline::before{
+    content:""; position:absolute; left:9px; top:8px; bottom:8px; width:1.5px;
+    background:linear-gradient(var(--brass), var(--violet));
+    opacity:0.4;
+  }
+  .t-item{position:relative; margin-bottom:26px;}
+  .t-dot{
+    position:absolute; left:-34px; top:4px; width:20px; height:20px; border-radius:50%;
+    border:2px solid var(--brass-bright); background:var(--ink-950);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .t-dot::after{content:""; width:7px; height:7px; border-radius:50%; background:var(--brass-bright);}
+  .t-card{
+    background:var(--ink-850); border:1px solid var(--line); border-radius:var(--radius);
+    padding:24px 26px;
+  }
+  .t-card h4{font-family:var(--sans); font-weight:700; font-size:1.08rem; color:#f4f2ec; margin-bottom:4px;}
+  .t-org{color:var(--brass-bright); font-size:14px; font-weight:600; margin-bottom:12px; display:block;}
+  .t-date{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:var(--mono); font-size:12px; color:var(--paper-dim);
+    background:var(--ink-900); border:1px solid var(--line);
+    padding:6px 12px; border-radius:999px; margin-bottom:14px;
+  }
+  .t-date svg{width:13px; height:13px; stroke:var(--paper-faint);}
+  .t-desc{color:var(--paper-dim); font-size:14.5px; line-height:1.75;}
+  .t-desc.clamped{
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .t-toggle{
+    background:none; border:none; color:var(--violet-bright); font-size:13.5px; font-weight:600;
+    margin-top:10px; cursor:pointer; padding:0; font-family:var(--sans);
+  }
+  .t-toggle:hover{text-decoration:underline;}
+
+  /* ---------- Skills ---------- */
+  .skills-cat{margin-bottom:40px;}
+  .skills-cat:last-child{margin-bottom:0;}
+  .skills-cat-head{display:flex; align-items:center; gap:12px; margin-bottom:22px;}
+  .skills-cat-head h3{font-size:1.25rem; color:#f4f2ec;}
+  .skills-cat-head .qual-icon svg{width:18px; height:18px; stroke:var(--brass-bright);}
+  .skills-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;
+  }
+  section#skills > .wrap:last-child{padding-bottom:110px;}
+  .skill-pill{
+    display:flex; align-items:center; gap:12px;
+    background:var(--ink-850); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; font-size:14.5px; font-weight:600; color:#e9e7e0;
+    transition:.2s;
+  }
+  .skill-pill:hover{border-color:var(--brass-bright); transform:translateY(-2px);}
+  .skill-check{
+    width:24px; height:24px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg, var(--brass), var(--violet));
+    display:flex; align-items:center; justify-content:center;
+  }
+  .skill-check svg{width:12px; height:12px; stroke:#0b0e14; stroke-width:3;}
+
+  /* ---------- Certifications ---------- */
+  .cert-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; padding-bottom:110px;}
+  .cert-card{
+    display:flex; gap:16px; align-items:flex-start;
+    background:var(--ink-850); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 24px; transition:.2s;
+  }
+  .cert-card:hover{border-color:var(--brass-bright); transform:translateY(-2px);}
+  .cert-icon{
+    width:40px; height:40px; border-radius:10px; background:var(--ink-900); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .cert-icon svg{width:18px; height:18px; stroke:var(--brass-bright);}
+  .cert-card h4{font-size:15px; font-weight:700; color:#f0eee7; margin-bottom:5px; line-height:1.4;}
+  .cert-card span{color:var(--paper-faint); font-size:13px; font-family:var(--mono);}
+
+  /* ---------- Projects ---------- */
+  .proj-simple-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; padding-bottom:110px;}
+  .proj-simple{
+    background:var(--ink-850); border:1px solid var(--line); border-radius:var(--radius);
+    padding:24px 26px; transition:.2s;
+  }
+  .proj-simple:hover{border-color:var(--brass-bright); transform:translateY(-2px);}
+  .proj-simple h4{font-family:var(--sans); font-weight:700; font-size:1.02rem; color:#f4f2ec; margin-bottom:10px;}
+  .proj-simple p{color:var(--paper-dim); font-size:14px; line-height:1.7;}
+
+  /* ---------- Contact ---------- */
+  .contact-info{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:40px;}
+  .info-card{
+    display:block;
+    background:var(--ink-850); border:1px solid var(--line); border-radius:var(--radius);
+    padding:26px 20px; text-align:center;
+    transition:.2s;
+  }
+  a.info-card:hover{border-color:var(--brass-bright); transform:translateY(-2px);}
+  .info-icon{
+    width:44px; height:44px; border-radius:11px; margin:0 auto 14px;
+    background:var(--ink-900); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .info-icon svg{width:19px; height:19px; stroke:var(--brass-bright);}
+  .info-label{font-family:var(--mono); font-size:11px; letter-spacing:0.12em; color:var(--paper-faint); margin-bottom:8px; text-transform:uppercase;}
+  .info-value{font-weight:700; color:#f0eee7; font-size:14.5px; word-break:break-word;}
+
+  .contact-form{
+    max-width:100%; background:var(--ink-850); border:1px solid var(--line); border-radius:var(--radius);
+    padding:38px; margin-bottom:120px;
+  }
+  .contact-form h3{font-size:1.3rem; color:#f4f2ec; margin-bottom:26px;}
+  .field{margin-bottom:20px;}
+  .field label{
+    display:block; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--paper-faint); margin-bottom:9px;
+  }
+  .field input, .field textarea{
+    width:100%; background:var(--ink-900); border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; color:#f4f2ec; font-family:var(--sans); font-size:14.5px; resize:vertical;
+  }
+  .field input:focus, .field textarea:focus{outline:none; border-color:var(--brass-bright);}
+  .field input::placeholder, .field textarea::placeholder{color:var(--paper-faint);}
+  .submit-btn{
+    width:100%; justify-content:center; margin-top:6px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer{border-top:1px solid var(--line); padding:64px 0 40px; text-align:center;}
+  footer h3{font-size:1.5rem; color:#f4f2ec; margin-bottom:8px;}
+  footer p{color:var(--paper-dim); font-size:14px; margin-bottom:26px;}
+  .foot-links{display:flex; justify-content:center; gap:28px; margin-bottom:30px; flex-wrap:wrap;}
+  .foot-links a{color:var(--paper-dim); font-size:14px;}
+  .foot-links a:hover{color:var(--brass-bright);}
+  .foot-social{display:flex; justify-content:center; margin-bottom:34px;}
+  .foot-bottom{color:var(--paper-faint); font-size:12.5px; border-top:1px solid var(--line); padding-top:26px;}
+  .foot-bottom a{color:var(--brass-bright);}
+
+  .reveal{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+
+  @media (max-width: 860px){
+    .nav-links{
+      position:fixed; top:74px; left:0; right:0; bottom:0;
+      background:var(--ink-950); flex-direction:column; align-items:flex-start;
+      padding:30px 28px; gap:22px; transform:translateX(100%); transition:transform .3s ease;
+      border-top:1px solid var(--line);
+    }
+    .nav-links.open{transform:translateX(0);}
+    .nav-toggle{display:flex;}
+    .hero-grid{grid-template-columns:1fr; gap:48px;}
+    .portrait-wrap{order:-1;}
+    .ledger-ring{width:220px; height:220px;}
+    .portrait{font-size:3.6rem;}
+    .qual-grid{grid-template-columns:1fr; gap:56px;}
+    .skills-grid{grid-template-columns:1fr 1fr;}
+    .cert-grid{grid-template-columns:1fr;}
+    .proj-simple-grid{grid-template-columns:1fr;}
+    .contact-info{grid-template-columns:1fr;}
+    .wrap{padding:0 20px;}
+  }
+  @media (max-width: 640px){
+    .contact-info{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:480px){
+    .skills-grid{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .reveal{transition:none; opacity:1; transform:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient-bg" id="ambientBg">
+  <div class="blob blob-1" id="blob1"></div>
+  <div class="blob blob-2" id="blob2"></div>
+  <div class="blob blob-3" id="blob3"></div>
+</div>
+
+<header>
+  <nav class="wrap">
+    <div class="brand">
+      <div class="brand-mark">Y</div>
+      <span class="brand-name">YAHIA&nbsp;ABDEL HAKIM</span>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <a href="#about">About</a>
+      <a href="#qualification">Qualification</a>
+      <a href="#skills">Skills</a>
+      <a href="#certifications">Certifications</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span></button>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="status-pill"><span class="dot"></span> Available for work</div>
+      <div class="hero-hi">Hi, I'm</div>
+      <h1>Yahia Abdel Hakim<span class="accent">Systems, configured right.</span></h1>
+      <p class="hero-role">Junior Odoo ERP Implementation Consultant | Business Analyst</p>
+      <p class="hero-bio">Commerce student and Odoo ERP trainee with hands-on experience configuring Sales, Inventory, Accounting, Manufacturing and Project Management modules — combining a strong analytical mindset with practical ERP expertise.</p>
+      <div class="hero-cta">
+        <a href="#contact" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+          Contact me
+        </a>
+        <a href="https://www.linkedin.com/in/yahia-abdel-hakim" target="_blank" rel="noopener" class="btn btn-ghost">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          View LinkedIn
+        </a>
+        <div class="social-row">
+          <a class="social-btn" href="https://wa.me/201095450148" aria-label="WhatsApp" target="_blank" rel="noopener">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.47 14.38c-.29-.14-1.7-.84-1.96-.93-.26-.1-.46-.14-.65.14-.19.29-.75.93-.92 1.12-.17.19-.34.21-.63.07-.29-.14-1.7-.84-1.96-.93-.26-.1-.46-.14-.65.14-.19.29-.75.93-.92 1.12-.17.19-.34.21-.63.07-.29-.14-1.7-.84-1.96-.93Z"/></svg>
+          </a>
+          <a class="social-btn" href="https://www.linkedin.com/in/yahia-abdel-hakim" aria-label="LinkedIn" target="_blank" rel="noopener">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.15 1.45-2.15 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.53 0 4.18 2.32 4.18 5.34v6.45Z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="portrait-wrap">
+      <div class="ledger-ring">
+        <div class="portrait">Y</div>
+      </div>
+      <div class="ledger-tag">ODOO ERP · EGYPT</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap section-head">
+    <span class="eyebrow">Who I am</span>
+    <h2 class="section-title reveal">About</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="wrap">
+    <p class="about-body reveal">Commerce student and Odoo ERP trainee with hands-on experience configuring Sales, Inventory, Accounting, Manufacturing, and Project Management modules. Completed 60 hours of comprehensive ERP and Accounting training, equipping me with practical skills in system configuration and business process optimization.</p>
+    <div class="about-tags reveal">
+      <div class="tag-pill"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Junior Odoo ERP Consultant</div>
+      <div class="tag-pill"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Deshna, Qena, Egypt</div>
+      <div class="tag-pill"><a href="mailto:yahia.abdelhakim.prof@gmail.com" style="display:flex; align-items:center; gap:9px; color:inherit;"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>yahia.abdelhakim.prof@gmail.com</a></div>
+    </div>
+    <div class="about-actions reveal" style="gap:16px; flex-wrap:wrap;">
+      <a href="https://www.linkedin.com/in/yahia-abdel-hakim" target="_blank" rel="noopener" class="btn btn-ghost">LinkedIn
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.15 1.45-2.15 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.53 0 4.18 2.32 4.18 5.34v6.45Z"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- QUALIFICATION -->
+<section id="qualification">
+  <div class="wrap section-head">
+    <span class="eyebrow">My journey</span>
+    <h2 class="section-title reveal">Qualification</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">My professional and academic background</p>
+    <div class="rule"></div>
+  </div>
+  <div class="wrap qual-grid">
+    <div>
+      <div class="qual-col-head">
+        <div class="qual-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+        <h3>Experience</h3>
+      </div>
+      <div class="timeline">
+        <div class="t-item reveal">
+          <div class="t-dot"></div>
+          <div class="t-card">
+            <h4>Odoo Application Consultant Training Program</h4>
+            <span class="t-org">60-Hour ERP & Accounting Training</span>
+            <span class="t-date"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>2025-11 – 2026-02</span>
+            <p class="t-desc clamped">Completed 60 hours of ERP and Accounting training covering core Odoo functionality. Applied Odoo ERP modules across Sales, Purchase, Inventory, Accounting, Manufacturing, and Project Management in real-world scenarios.</p>
+            <button class="t-toggle" onclick="toggleClamp(this)">Read more</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="qual-col-head">
+        <div class="qual-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/></svg></div>
+        <h3>Education</h3>
+      </div>
+      <div class="timeline">
+        <div class="t-item reveal">
+          <div class="t-dot"></div>
+          <div class="t-card">
+            <h4>Qena University</h4>
+            <span class="t-org">Bachelor of Commerce · In Progress</span>
+            <span class="t-date"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>2024-10 – Present</span>
+            <p class="t-desc">Bachelor of Commerce, Qena University, Qena, Egypt. Cumulative Academic Performance: Very Good.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="wrap section-head">
+    <span class="eyebrow">What I work with</span>
+    <h2 class="section-title reveal">Skills</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">Tools and strengths I bring to every implementation</p>
+    <div class="rule"></div>
+  </div>
+  <div class="wrap">
+    <div class="skills-cat reveal">
+      <div class="skills-cat-head">
+        <div class="qual-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg></div>
+        <h3>Technical Skills</h3>
+      </div>
+      <div class="skills-grid" id="skillsGridTech"></div>
+    </div>
+    <div class="skills-cat reveal">
+      <div class="skills-cat-head">
+        <div class="qual-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></div>
+        <h3>Soft Skills</h3>
+      </div>
+      <div class="skills-grid" id="skillsGridSoft"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICATIONS -->
+<section id="certifications">
+  <div class="wrap section-head">
+    <span class="eyebrow">Credentials</span>
+    <h2 class="section-title reveal">Certifications</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">Courses, exams, and credentials I've earned along the way</p>
+    <div class="rule"></div>
+  </div>
+  <div class="wrap cert-grid" id="certGrid"></div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="wrap section-head">
+    <span class="eyebrow">Highlights</span>
+    <h2 class="section-title reveal">Projects</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">ERP Implementation Projects — Odoo · 2025 – 2026</p>
+    <div class="rule"></div>
+  </div>
+  <div class="wrap proj-simple-grid">
+    <div class="proj-simple reveal">
+      <h4>Sales & Inventory Configuration</h4>
+      <p>Configured Sales and Inventory modules to simulate end-to-end order and stock management processes, validating configuration accuracy across a simulated business scenario.</p>
+    </div>
+    <div class="proj-simple reveal">
+      <h4>Accounting Setup & Opening Balances</h4>
+      <p>Implemented accounting setup, including opening balances, for simulated company data as part of the Odoo Application Consultant training program.</p>
+    </div>
+    <div class="proj-simple reveal">
+      <h4>Manufacturing Module Setup</h4>
+      <p>Applied Odoo's Manufacturing module in a hands-on training project, configuring workflows for a simulated construction/manufacturing business case.</p>
+    </div>
+    <div class="proj-simple reveal">
+      <h4>Project Management & Profitability Tracking</h4>
+      <p>Designed a project management workflow incorporating profitability and cost tracking, simulating real-world project-based business operations.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="wrap section-head">
+    <span class="eyebrow">Get in touch</span>
+    <h2 class="section-title reveal">Contact me</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">I'm open to new opportunities in Odoo ERP Implementation & Business Analysis. Feel free to reach out!</p>
+    <div class="rule"></div>
+  </div>
+  <div class="wrap">
+    <div class="contact-info reveal">
+      <a class="info-card" href="mailto:yahia.abdelhakim.prof@gmail.com" style="cursor:pointer;">
+        <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg></div>
+        <div class="info-label">Email</div>
+        <div class="info-value">yahia.abdelhakim.prof@gmail.com</div>
+      </a>
+      <a class="info-card" href="https://wa.me/201095450148" target="_blank" rel="noopener" style="cursor:pointer;">
+        <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3.15a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"/></svg></div>
+        <div class="info-label">Phone / WhatsApp</div>
+        <div class="info-value">+20 10 9545 0148</div>
+      </a>
+      <div class="info-card">
+        <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div class="info-label">Location</div>
+        <div class="info-value">Deshna, Qena, Egypt</div>
+      </div>
+      <a class="info-card" href="https://www.linkedin.com/in/yahia-abdel-hakim" target="_blank" rel="noopener" style="cursor:pointer;">
+        <div class="info-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.15 1.45-2.15 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.53 0 4.18 2.32 4.18 5.34v6.45ZM5.62 7.55a1.74 1.74 0 1 1 0-3.48 1.74 1.74 0 0 1 0 3.48Z"/></svg></div>
+        <div class="info-label">LinkedIn</div>
+        <div class="info-value">linkedin.com/in/yahia-abdel-hakim</div>
+      </a>
+    </div>
+
+    <form class="contact-form reveal" id="contactForm">
+      <h3>Send message</h3>
+      <div class="field">
+        <label>Name</label>
+        <input type="text" placeholder="John Doe" required>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" placeholder="john@example.com" required>
+      </div>
+      <div class="field">
+        <label>Message</label>
+        <textarea rows="4" placeholder="Tell me about your project..." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary submit-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        Send message
+      </button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <h3>Yahia Abdel Hakim</h3>
+    <p>Junior Odoo ERP Implementation Consultant | Business Analyst</p>
+    <div class="foot-links">
+      <a href="#about">About</a>
+      <a href="#qualification">Qualification</a>
+      <a href="#skills">Skills</a>
+      <a href="#certifications">Certifications</a>
+    </div>
+    <div class="foot-social">
+      <a class="social-btn" href="mailto:yahia.abdelhakim.prof@gmail.com" aria-label="Email">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+      </a>
+      <a class="social-btn" href="https://wa.me/201095450148" aria-label="WhatsApp" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.47 14.38c-.29-.14-1.7-.84-1.96-.93-.26-.1-.46-.14-.65.14-.19.29-.75.93-.92 1.12-.17.19-.34.21-.63.07-.29-.14-1.7-.84-1.96-.93-.26-.1-.46-.14-.65.14-.19.29-.75.93-.92 1.12-.17.19-.34.21-.63.07-.29-.14-1.7-.84-1.96-.93Z"/></svg>
+      </a>
+      <a class="social-btn" href="https://www.linkedin.com/in/yahia-abdel-hakim" aria-label="LinkedIn" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.15 1.45-2.15 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.36-1.85 3.53 0 4.18 2.32 4.18 5.34v6.45ZM5.62 7.55a1.74 1.74 0 1 1 0-3.48 1.74 1.74 0 0 1 0 3.48Z"/></svg>
+      </a>
+    </div>
+    <div class="foot-bottom">© 2026 Yahia Abdel Hakim. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+  // Nav toggle
+  const navToggle = document.getElementById('navToggle');
+  const navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+  // Read more / less toggle
+  function toggleClamp(btn){
+    const desc = btn.previousElementSibling;
+    desc.classList.toggle('clamped');
+    btn.textContent = desc.classList.contains('clamped') ? 'Read more' : 'Show less';
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); observer.unobserve(e.target);} });
+  }, {threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Contact form — opens a prefilled email to Yahia, with a little emoji delight
+  document.getElementById('contactForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const btn = this.querySelector('.submit-btn');
+    const name = this.querySelector('input[type="text"]').value || 'there';
+    const email = this.querySelector('input[type="email"]').value;
+    const message = this.querySelector('textarea').value;
+    const subject = encodeURIComponent('Portfolio inquiry from ' + name);
+    const body = encodeURIComponent(message + (email ? ('\n\n— ' + name + ' (' + email + ')') : ('\n\n— ' + name)));
+    const original = btn.innerHTML;
+
+    // Trigger the mailto immediately (within the user gesture) so browsers don't block it
+    window.location.href = `mailto:yahia.abdelhakim.prof@gmail.com?subject=${subject}&body=${body}`;
+
+    // Delightful visual feedback
+    emojiBurst(btn);
+    btn.innerHTML = 'Opening your email app… ✨';
+    btn.disabled = true;
+    const form = this;
+    setTimeout(() => {
+      btn.innerHTML = original;
+      btn.disabled = false;
+      form.reset();
+    }, 1800);
+  });
+
+  // Delightful emoji burst — used when sending a message
+  function emojiBurst(anchorEl){
+    const emojis = ['📧','✨','💌','🙌','⭐'];
+    const rect = anchorEl.getBoundingClientRect();
+    for (let i = 0; i < 10; i++){
+      const span = document.createElement('span');
+      span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      span.style.position = 'fixed';
+      span.style.left = (rect.left + rect.width/2 + (Math.random()*80-40)) + 'px';
+      span.style.top = (rect.top + rect.height/2) + 'px';
+      span.style.fontSize = (16 + Math.random()*14) + 'px';
+      span.style.pointerEvents = 'none';
+      span.style.zIndex = 999;
+      span.style.transition = 'transform 1.1s cubic-bezier(.2,.7,.3,1), opacity 1.1s ease';
+      span.style.willChange = 'transform, opacity';
+      document.body.appendChild(span);
+      requestAnimationFrame(() => {
+        const dx = (Math.random()*160-80);
+        const dy = -(120 + Math.random()*100);
+        span.style.transform = `translate(${dx}px, ${dy}px) rotate(${Math.random()*60-30}deg) scale(1.3)`;
+        span.style.opacity = '0';
+      });
+      setTimeout(() => span.remove(), 1200);
+    }
+  }
+
+  // Ambient background — slow autonomous drift plus gentle mouse parallax
+  (function(){
+    const blob1 = document.getElementById('blob1');
+    const blob2 = document.getElementById('blob2');
+    const blob3 = document.getElementById('blob3');
+    if (!blob1) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let mx = 0, my = 0; // normalized -0.5..0.5
+    window.addEventListener('mousemove', (e) => {
+      mx = (e.clientX / window.innerWidth) - 0.5;
+      my = (e.clientY / window.innerHeight) - 0.5;
+    });
+
+    if (reduced){
+      blob1.style.transform = 'translate(0,0)';
+      blob2.style.transform = 'translate(0,0)';
+      blob3.style.transform = 'translate(0,0)';
+      return;
+    }
+
+    const start = performance.now();
+    function tick(now){
+      const t = (now - start) / 1000;
+      const d1x = Math.sin(t / 9) * 60,  d1y = Math.cos(t / 11) * 50;
+      const d2x = Math.cos(t / 12) * 55, d2y = Math.sin(t / 10) * 45;
+      const d3x = Math.sin(t / 14) * 45, d3y = Math.cos(t / 13) * 40;
+      blob1.style.transform = `translate(${d1x + mx * 50}px, ${d1y + my * 50}px)`;
+      blob2.style.transform = `translate(${d2x + mx * -60}px, ${d2y + my * -45}px)`;
+      blob3.style.transform = `translate(${d3x + mx * 35}px, ${d3y + my * -35}px)`;
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+
+  // Skills data
+  const technicalSkills = ["Odoo ERP Implementation","Sales & Inventory Configuration","Accounting Setup & Opening Balances","Manufacturing Module","Project Management & Profitability Tracking","Business Process Analysis"];
+  const softSkills = ["Time Management","Problem-Solving","Productivity","Fast Learning"];
+
+  function renderSkills(list, gridId){
+    const grid = document.getElementById(gridId);
+    list.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'skill-pill reveal';
+      div.innerHTML = `<span class="skill-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 6 9 17l-5-5"/></svg></span>${s}`;
+      grid.appendChild(div);
+      observer.observe(div);
+    });
+  }
+  renderSkills(technicalSkills, 'skillsGridTech');
+  renderSkills(softSkills, 'skillsGridSoft');
+
+  // Certifications data
+  const certs = [
+    ["Odoo Application Consultant Training Program","60 Hours · Nov 2025 – Feb 2026"]
+  ];
+  const certGrid = document.getElementById('certGrid');
+  certs.forEach(([title, meta]) => {
+    const div = document.createElement('div');
+    div.className = 'cert-card reveal';
+    div.innerHTML = `<div class="cert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="m9 13.5-2 7 5-3 5 3-2-7"/></svg></div><div><h4>${title}</h4><span>${meta}</span></div>`;
+    certGrid.appendChild(div);
+    observer.observe(div);
+  });
+</script>
+
+</body>
+</html>
